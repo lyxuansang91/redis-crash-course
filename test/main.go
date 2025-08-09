@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"sync"
 	"time"
 )
 
@@ -56,46 +57,42 @@ func (tc *TestClient) Close() {
 
 func main() {
 	fmt.Println("Starting TCP Server Test...")
-	fmt.Println("Make sure the server is running with: go run test/main.go\n")
+	fmt.Println("Make sure the server is running with: go run test/main.go")
 	
-	
-	// Create multiple test clients
-	// clients := make([]*TestClient, 0)
-	client, err := NewTestClient("Client-1")
-	
-	if err != nil {
-		log.Fatalf("Failed to create client: %v", err)
+	clients := make([]*TestClient, 0)
+	for i := 0; i < 10; i++ {
+		client, err := NewTestClient(fmt.Sprintf("Client-%d", i))
+		if err != nil {
+			log.Fatalf("Failed to create client: %v", err)
+		}
+		fmt.Printf("Created %s\n", client.name)
+		clients = append(clients, client)
 	}
-
-	fmt.Printf("Created %s\n", client.name)
-	
-	
-	// if len(clients) == 0 {
-	// 	log.Fatal("No clients could be created. Is the server running?")
-	// }
-	
 	// Send messages from each client
 	messages := []string{
 		"Hello from client!",
 		"How are you doing?",
 		"This is a test message",
 		"Testing concurrent connections",
-		// "quit",
 	}
-	
-	for _, message := range messages {
-		fmt.Printf("\n[%s] Sending: %s\n", client.name, message)
-		if err := client.SendMessage(message); err != nil {
-			log.Printf("Error sending message from %s: %v", client.name, err)
-		}
-		time.Sleep(500 * time.Millisecond) // Small delay between messages
+
+	// synchronize the clients
+	wg := &sync.WaitGroup{}
+	for _, client := range clients {
+		wg.Add(1)
+		go func(c *TestClient) {
+			defer wg.Done()
+			for _, message := range messages {
+				fmt.Printf("\n[%s] Sending: %s\n", c.name, message)
+				if err := c.SendMessage(message); err != nil {
+					log.Printf("Error sending message from %s: %v", c.name, err)
+				}
+				time.Sleep(500 * time.Millisecond) // Small delay between messages	
+			}
+			fmt.Println("\nDisconnecting client...")
+			c.SendMessage("quit")
+		}(client)
 	}
-	
-	// Send quit command from each client
-	fmt.Println("\nDisconnecting client...")
-	client.SendMessage("quit")
-	client.Close()
-	
-	
+	wg.Wait()
 	fmt.Println("\nTest completed successfully!")
 } 
