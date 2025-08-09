@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"net"
+
+	"github.com/lyxuansang91/redis-crash-course/threadpool"
 )
 
 // Server represents our TCP server
@@ -30,15 +32,13 @@ func (s *Server) Start() error {
 	s.listener = listener
 	
 	fmt.Printf("TCP Server started on port %s\n", s.port)
-	fmt.Println("Waiting for connections...")
+    fmt.Println("Waiting for connections...")
 
-	pool := NewPool(10)
-	pool.Start()
+    pool := threadpool.NewPool(10)
+    pool.Start()
 	// Accept connections in a loop
 	for {
-		conn, err := s.listener.Accept()
-
-		client := NewClient(conn)
+        conn, err := s.listener.Accept()
 		
 		if err != nil {
             if errors.Is(err, net.ErrClosed) {
@@ -49,8 +49,12 @@ func (s *Server) Start() error {
             continue
 		}
 		
-		// Handle each connection in a separate goroutine
-		pool.AddJob(client)
+        client := NewClient(conn)
+
+        // Queue a function task for the pool instead of calling directly
+        pool.AddJob(func() {
+            client.handleConnection()
+        })
 	}
 }
 
