@@ -56,26 +56,23 @@ func (tc *TestClient) Close() {
 
 func main() {
 	fmt.Println("Starting TCP Server Test...")
-	fmt.Println("Make sure the server is running with: go run main.go")
-	fmt.Println()
+	fmt.Println("Make sure the server is running with: go run test/main.go\n")
+	
 	
 	// Create multiple test clients
-	clients := make([]*TestClient, 0)
+	// clients := make([]*TestClient, 0)
+	client, err := NewTestClient("Client-1")
 	
-	// Create 3 test clients
-	for i := 1; i <= 3; i++ {
-		client, err := NewTestClient(fmt.Sprintf("Client-%d", i))
-		if err != nil {
-			log.Printf("Failed to create client %d: %v", i, err)
-			continue
-		}
-		clients = append(clients, client)
-		fmt.Printf("Created %s\n", client.name)
+	if err != nil {
+		log.Fatalf("Failed to create client: %v", err)
 	}
+
+	fmt.Printf("Created %s\n", client.name)
 	
-	if len(clients) == 0 {
-		log.Fatal("No clients could be created. Is the server running?")
-	}
+	
+	// if len(clients) == 0 {
+	// 	log.Fatal("No clients could be created. Is the server running?")
+	// }
 	
 	// Send messages from each client
 	messages := []string{
@@ -83,10 +80,10 @@ func main() {
 		"How are you doing?",
 		"This is a test message",
 		"Testing concurrent connections",
+		// "quit",
 	}
 	
-	for i, message := range messages {
-		client := clients[i%len(clients)]
+	for _, message := range messages {
 		fmt.Printf("\n[%s] Sending: %s\n", client.name, message)
 		if err := client.SendMessage(message); err != nil {
 			log.Printf("Error sending message from %s: %v", client.name, err)
@@ -95,12 +92,10 @@ func main() {
 	}
 	
 	// Send quit command from each client
-	fmt.Println("\nDisconnecting clients...")
-	for _, client := range clients {
-		fmt.Printf("Disconnecting %s\n", client.name)
-		client.SendMessage("quit")
-		client.Close()
-	}
+	fmt.Println("\nDisconnecting client...")
+	client.SendMessage("quit")
+	client.Close()
+	
 	
 	fmt.Println("\nTest completed successfully!")
 } 
