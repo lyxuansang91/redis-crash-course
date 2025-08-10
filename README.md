@@ -1,4 +1,4 @@
-# Redis Crash Course - TCP Server Implementation
+# Redis Go - TCP Server Implementation
 
 A Redis-like multi-threaded TCP server implemented in Go, featuring concurrent connection handling and basic message processing.
 
@@ -7,10 +7,10 @@ A Redis-like multi-threaded TCP server implemented in Go, featuring concurrent c
 ## Project Structure
 
 ```
-redis-crash-course/
+redis-go/
 ├── main.go          # TCP server implementation
 ├── problem1.go      # Original concurrency example
-├── client/
+├── test/
 │   └── main.go      # TCP client for testing
 └── README.md        # This file
 ```
