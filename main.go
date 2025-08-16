@@ -7,16 +7,18 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/lyxuansang91/redis-crash-course/server"
+	"github.com/lyxuansang91/redis-crash-course/internal/config"
+	"github.com/lyxuansang91/redis-crash-course/internal/server"
 )
 
 func main() {
+	newConfig := config.NewConfig()
 	// Create and start the TCP server on port 8080
-	tcpServer := server.NewServer("8080")
+	tcpServer := server.NewServer(newConfig)
 	
 	// Start the server in a goroutine
 	go func() {
-		if err := tcpServer.Start(); err != nil {
+		if err := tcpServer.RunIoMultiplexingServer(); err != nil {
 			log.Fatalf("Server error: %v", err)
 		}
 	}()
