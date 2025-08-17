@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 const CRLF string = "\r\n"
@@ -131,4 +132,19 @@ func Encode(value any, isSimpleString bool) []byte {
 	default:
 		return RespNil
 	}
+}
+
+func ParseCmd(data []byte) (*Command, error) {
+	value, err := Decode(data)
+	if err != nil {
+		return nil, err
+	}
+
+	array := value.([]any)
+	tokens := make([]string, len(array))
+	for i := range tokens {
+		tokens[i] = array[i].(string)
+	}
+	res := &Command{Cmd: strings.ToUpper(tokens[0]), Args: tokens[1:]}
+	return res, nil
 }

@@ -9,7 +9,9 @@ import (
 	"syscall"
 
 	"github.com/lyxuansang91/redis-crash-course/internal/config"
+	"github.com/lyxuansang91/redis-crash-course/internal/core"
 	"github.com/lyxuansang91/redis-crash-course/internal/core/io_multiplexing"
+	"github.com/lyxuansang91/redis-crash-course/internal/data_structure"
 	"github.com/lyxuansang91/redis-crash-course/threadpool"
 )
 
@@ -18,6 +20,7 @@ type Server struct {
 	config *config.Config
 	listener net.Listener
 	port     string
+	executor core.CommandExecutor
 }
 
 
@@ -26,26 +29,20 @@ func NewServer(config *config.Config) *Server {
 	return &Server{
 		config: config,
 		port: config.Port,
+		executor: core.NewCommandExecutor(data_structure.CreateDict()),
 	}
 }
 
-func (s *Server) readCommand(fd int) (string, error) {
+func (s *Server) readCommand(fd int) (*core.Command, error) {
 	var buf = make([]byte, 512)
 	n, err := syscall.Read(fd, buf)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	if n == 0 {
-		return "", io.EOF
+		return nil, io.EOF
 	}
-	return string(buf[:n]), nil
-}
-
-func (s *Server) respond(data string, fd int) error {
-	if _, err := syscall.Write(fd, []byte(data)); err != nil {
-		return err
-	}
-	return nil
+	return core.ParseCmd(buf)
 }
 
 func (s *Server) RunIoMultiplexingServer() error {
@@ -122,7 +119,7 @@ func (s *Server) RunIoMultiplexingServer() error {
 					log.Printf("read error: %v\n", err)
 					continue
 				}
-				if err = s.respond(cmd, events[i].Fd); err != nil {
+				if err = s.executor.ExecuteAndResponse(cmd, events[i].Fd); err != nil {
 					log.Printf("err write: %v\n", err)
 				}
 			}

@@ -49,7 +49,7 @@ A Redis-like multi-threaded TCP server implemented in Go, featuring concurrent c
    Or run directly with Go:
 
    ```bash
-   go run main.go
+   go run cmd/main.go
    ```
 
 2. **The server will start on port 8080** and display:
@@ -90,7 +90,8 @@ nc localhost 8080
 
 ```
 redis-crash-course/
-├── main.go                    # Main application entry point
+├── cmd/
+|   ├── main.go                # Main application entry point
 ├── go.mod                     # Go module dependencies
 ├── go.sum                     # Go module checksums
 ├── internal/                  # Internal packages

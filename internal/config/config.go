@@ -9,7 +9,7 @@ type Config struct {
 
 const (
 	Protocol = "tcp"
-	Port = "8080"
+	Port = ":3000"
 	MaxConnections = 20000
 )
 
