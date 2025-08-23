@@ -10,4 +10,8 @@ const (
 	CmdSet = "SET"
 	CmdGet = "GET"
 	CmdTtl = "TTL"
+	CmdExpire = "EXPIRE"
+	CmdExpireAt = "EXPIREAT"
+	CmdDel = "DEL"
+	CmdExists = "EXISTS"
 )
